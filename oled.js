@@ -5,7 +5,8 @@ var Oled = function(opts) {
   this.HEIGHT = opts.height || 32;
   this.WIDTH = opts.width || 128;
   this.ADDRESS = opts.address || 0x3C;
-  this.PROTOCOL = 'I2C';
+  this.DEVICE = opts.device || '/dev/i2c-1';
+  this.MICROVIEW = opts.microview || false;
 
   // create command buffers
   this.DISPLAY_OFF = 0xAE;
@@ -15,7 +16,6 @@ var Oled = function(opts) {
   this.SET_DISPLAY_OFFSET = 0xD3;
   this.SET_START_LINE = 0x00;
   this.CHARGE_PUMP = 0x8D;
-  this.EXTERNAL_VCC = false;
   this.MEMORY_MODE = 0x20;
   this.SEG_REMAP = 0xA1; // using 0xA0 will flip screen
   this.COM_SCAN_DEC = 0xC8;
@@ -61,18 +61,23 @@ var Oled = function(opts) {
       'multiplex': 0x0F,
       'compins': 0x2,
       'coloffset': 0,
-    }
-  };
+    },
+    // this is blended microview / normal 64 x 48, currently wip
+    '64x48': {
+      'multiplex': 0x2F,
+      'compins': 0x12,
+      'coloffset': (this.MICROVIEW) ? 32 : 0
+    },
+};
 
   // Setup i2c
-  console.log('this.ADDRESS: ' + this.ADDRESS);
-  this.wire = new i2c(this.ADDRESS, {device: '/dev/i2c-0'}); // point to your i2c address, debug provides REPL interface
+  this.wire = new i2c(this.ADDRESS, {device: this.DEVICE});
 
   var screenSize = this.WIDTH + 'x' + this.HEIGHT;
   this.screenConfig = config[screenSize];
 
   this._initialise();
-}
+};
 
 Oled.prototype._initialise = function() {
 
@@ -102,7 +107,7 @@ Oled.prototype._initialise = function() {
   for (i = 0; i < initSeqLen; i ++) {
     this._transfer('cmd', initSeq[i]);
   }
-}
+};
 
 // writes both commands and data buffers to this device
 Oled.prototype._transfer = function(type, val, fn) {
@@ -115,22 +120,15 @@ Oled.prototype._transfer = function(type, val, fn) {
     return;
   }
 
-  // send control and actual val
-  // this.board.io.i2cWrite(this.ADDRESS, [control, val]);
-  this.wire.writeByte(control, function(err) {
-    this.wire.writeByte(val, function(err) {
-      fn();
-    });
-  });
-}
+  this.wire.writeBytes(control, [val], () => {});
+};
 
 // read a byte from the oled
 Oled.prototype._readI2C = function(fn) {
   this.wire.readByte(function(err, data) {
-    // result is single byte
     fn(data);
   });
-}
+};
 
 // sometimes the oled gets a bit busy with lots of bytes.
 // Read the response byte to see if this is the case
@@ -150,16 +148,16 @@ Oled.prototype._waitUntilReady = function(callback) {
         setTimeout(tick, 0);
       }
     });
-  };
+  }
 
   setTimeout(tick(callback), 0);
-}
+};
 
 // set starting position of a text string on the oled
 Oled.prototype.setCursor = function(x, y) {
   this.cursor_x = x;
   this.cursor_y = y;
-}
+};
 
 // write text to the oled
 Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
@@ -210,7 +208,7 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
   if (immed) {
     this._updateDirtyBytes(this.dirtyBytes);
   }
-}
+};
 
 // draw an individual character to the screen
 Oled.prototype._drawChar = function(byteArray, size, sync) {
@@ -237,7 +235,7 @@ Oled.prototype._drawChar = function(byteArray, size, sync) {
       }
     }
   }
-}
+};
 
 // get character bytes from the supplied font object in order to send to framebuffer
 Oled.prototype._readCharBytes = function(byteArray) {
@@ -259,7 +257,7 @@ Oled.prototype._readCharBytes = function(byteArray) {
     bitArr = [];
   }
   return bitCharArr;
-}
+};
 
 // find where the character exists within the font object
 Oled.prototype._findCharBuf = function(font, c) {
@@ -268,7 +266,7 @@ Oled.prototype._findCharBuf = function(font, c) {
   // slice just the current char's bytes out of the fontData array and return
   var cBuf = font.fontData.slice(cBufPos, cBufPos + font.width);
   return cBuf;
-}
+};
 
 // send the entire framebuffer to the oled
 Oled.prototype.update = function() {
@@ -297,7 +295,7 @@ Oled.prototype.update = function() {
     }
 
   }.bind(this));
-}
+};
 
 // send dim display command to oled
 Oled.prototype.dimDisplay = function(bool) {
@@ -311,17 +309,17 @@ Oled.prototype.dimDisplay = function(bool) {
 
   this._transfer('cmd', this.SET_CONTRAST);
   this._transfer('cmd', contrast);
-}
+};
 
 // turn oled off
 Oled.prototype.turnOffDisplay = function() {
   this._transfer('cmd', this.DISPLAY_OFF);
-}
+};
 
 // turn oled on
 Oled.prototype.turnOnDisplay = function() {
   this._transfer('cmd', this.DISPLAY_ON);
-}
+};
 
 // clear all pixels currently on the display
 Oled.prototype.clearDisplay = function(sync) {
@@ -339,7 +337,7 @@ Oled.prototype.clearDisplay = function(sync) {
   if (immed) {
     this._updateDirtyBytes(this.dirtyBytes);
   }
-}
+};
 
 // invert pixels on oled
 Oled.prototype.invertDisplay = function(bool) {
@@ -348,7 +346,7 @@ Oled.prototype.invertDisplay = function(bool) {
   } else {
     this._transfer('cmd', this.NORMAL_DISPLAY); // non inverted
   }
-}
+};
 
 // draw an image pixel array on the screen
 Oled.prototype.drawBitmap = function(pixels, sync) {
@@ -366,7 +364,7 @@ Oled.prototype.drawBitmap = function(pixels, sync) {
   if (immed) {
     this._updateDirtyBytes(this.dirtyBytes);
   }
-}
+};
 
 // draw one or many pixels on oled
 Oled.prototype.drawPixel = function(pixels, sync) {
@@ -408,7 +406,7 @@ Oled.prototype.drawPixel = function(pixels, sync) {
   if (immed) {
     this._updateDirtyBytes(this.dirtyBytes);
   }
-}
+};
 
 // looks at dirty bytes, and sends the updated bytes to the display
 Oled.prototype._updateDirtyBytes = function(byteArray) {
@@ -451,7 +449,7 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
   }
   // now that all bytes are synced, reset dirty state
   this.dirtyBytes = [];
-}
+};
 
 // using Bresenham's line algorithm
 Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
@@ -475,7 +473,27 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
   if (immed) {
     this._updateDirtyBytes(this.dirtyBytes);
   }
-}
+};
+
+// Draw an outlined  rectangle
+Oled.prototype.drawRect = function(x, y, w, h, color, sync){
+	var immed = (typeof sync === 'undefined') ? true : sync;
+	//top
+	this.drawLine(x, y, x + w, y,color,false);
+
+	//left
+	this.drawLine(x, y + 1, x, y + h - 1, color, false);
+
+	//right
+	this.drawLine(x + w, y + 1, x + w, y + h - 1, color, false);
+
+	//bottom
+	this.drawLine(x, y + h - 1, x + w, y + h - 1, color, false);
+
+	if (immed) {
+		this._updateDirtyBytes(this.dirtyBytes);
+	}
+};
 
 // draw a filled rectangle on the oled
 Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
@@ -488,7 +506,59 @@ Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
   if (immed) {
     this._updateDirtyBytes(this.dirtyBytes);
   }
-}
+};
+
+/**
+ * Draw a circle outline
+ *
+ * This method is ad verbatim translation from the corresponding
+ * method on the Adafruit GFX library
+ * https://github.com/adafruit/Adafruit-GFX-Library
+ */
+Oled.prototype.drawCircle = function(x0, y0, r, color, sync) {
+	var immed = (typeof sync === 'undefined') ? true : sync;
+
+	var f = 1 - r;
+	var ddF_x = 1;
+	var ddF_y = -2 * r;
+	var x = 0;
+	var y = r;
+
+	this.drawPixel(
+		[[x0, y0 + r, color],
+			[x0, y0 - r, color],
+			[x0 + r, y0, color],
+			[x0 - r, y0, color]],
+		false
+	);
+
+	while(x < y) {
+		if (f >=0) {
+			y--;
+			ddF_y += 2;
+			f += ddF_y;
+		}
+		x++;
+		ddF_x += 2;
+		f += ddF_x;
+
+		this.drawPixel(
+			[[x0 + x, y0 + y, color],
+				[x0 - x, y0 + y, color],
+				[x0 + x, y0 - y, color],
+				[x0 - x, y0 - y, color],
+				[x0 + y, y0 + x, color],
+				[x0 - y, y0 + x, color],
+				[x0 + y, y0 - x, color],
+				[x0 - y, y0 - x, color]],
+			false
+		);
+	}
+
+	if (immed) {
+		this._updateDirtyBytes(this.dirtyBytes);
+	}
+};
 
 // activate scrolling for rows start through stop
 Oled.prototype.startScroll = function(dir, start, stop) {
@@ -533,11 +603,11 @@ Oled.prototype.startScroll = function(dir, start, stop) {
       this._transfer('cmd', cmdSeq[i]);
     }
   }.bind(this));
-}
+};
 
 // stop scrolling display contents
 Oled.prototype.stopScroll = function() {
   this._transfer('cmd', this.DEACTIVATE_SCROLL); // stahp
-}
+};
 
 module.exports = Oled;
