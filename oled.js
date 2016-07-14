@@ -110,7 +110,7 @@ Oled.prototype._initialise = function() {
 };
 
 // writes both commands and data buffers to this device
-Oled.prototype._transfer = function(type, val, fn) {
+Oled.prototype._transfer = function(type, val) {
   var control;
   if (type === 'data') {
     control = 0x40;
@@ -120,7 +120,7 @@ Oled.prototype._transfer = function(type, val, fn) {
     return;
   }
 
-  this.wire.writeBytes(control, [val], () => {});
+  this.wire.writeBytes(control, [val], function () {});
 };
 
 // read a byte from the oled
@@ -144,7 +144,6 @@ Oled.prototype._waitUntilReady = function(callback) {
         // if not busy, it's ready for callback
         callback();
       } else {
-        console.log('I\'m busy!');
         setTimeout(tick, 0);
       }
     });
@@ -421,40 +420,46 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
   var blen = byteArray.length, i,
       displaySeq = [];
 
-  // check to see if this will even save time
-  if (blen > (this.buffer.length / 7)) {
-    // just call regular update at this stage, saves on bytes sent
-    this.update();
-    // now that all bytes are synced, reset dirty state
-    this.dirtyBytes = [];
+  this._waitUntilReady(function() {
+	  var pageStart = Infinity, pageEnd = 0;
+    var colStart = Infinity, colEnd = 0, any = false;
 
-  } else {
-
-    this._waitUntilReady(function() {
-      // iterate through dirty bytes
-      for (var i = 0; i < blen; i += 1) {
-
-        var byte = byteArray[i];
-        var page = Math.floor(byte / this.WIDTH);
-        var col = Math.floor(byte % this.WIDTH);
-
-        var displaySeq = [
-          this.COLUMN_ADDR, col, col, // column start and end address
-          this.PAGE_ADDR, page, page // page start and end address
-        ];
-
-        var displaySeqLen = displaySeq.length, v;
-
-        // send intro seq
-        for (v = 0; v < displaySeqLen; v += 1) {
-          this._transfer('cmd', displaySeq[v]);
-        }
-        // send byte, then move on to next byte
-        this._transfer('data', this.buffer[byte]);
-        this.buffer[byte];
+    // iterate through dirty bytes
+    for (var i = 0; i < blen; i += 1) {
+      var b = byteArray[i];
+      if ((b >= 0) && (b < this.buffer.length)) {
+        var page = b / this.WIDTH | 0;
+        if (page < pageStart) pageStart = page;
+        if (page > pageEnd) pageEnd = page;
+        var col = b % this.WIDTH;
+        if (col < colStart) colStart = col;
+        if (col > colEnd) colEnd = col;
+        any = true;
       }
-    }.bind(this));
-  }
+    }
+
+    if (!any) return;
+
+    displaySeq = [
+      this.COLUMN_ADDR, colStart, colEnd, // column start and end address
+      this.PAGE_ADDR, pageStart, pageEnd // page start and end address
+    ];
+
+    var displaySeqLen = displaySeq.length, v, vp, vc;
+
+    // send intro seq
+    for (v = 0; v < displaySeqLen; v += 1) {
+      this._transfer('cmd', displaySeq[v]);
+    }
+    // send byte, then move on to next byte
+    for (vp = pageStart; vp <= pageEnd; vp += 1) {
+      for (vc = colStart; vc <= colEnd; vc += 1) {
+        this._transfer('data', this.buffer[this.WIDTH * vp + vc]);
+      }
+    }
+
+  }.bind(this));
+
   // now that all bytes are synced, reset dirty state
   this.dirtyBytes = [];
 };
