@@ -1,39 +1,14 @@
-var five = require('johnny-five'),
-    pngtolcd = require('png-to-lcd'),
-    board = new five.Board(),
+var pngtolcd = require('png-to-lcd'),
     Oled = require('../oled'),
     font = require('oled-font-5x7'),
     temporal = require('temporal');
 
-// testing features
-board.on('ready', function() {
-  console.log('Connected to Arduino, ready.');
-
-  // I2C va USB
-  // var opts = {
-  //   width: 128,
-  //   height: 64, 
-  //   address: 0x3D
-  // };
-
-  // SPI via USB
-  // var opts = {
-  //   width: 128,
-  //   height: 64, 
-  //   slavePin: 12
-  // };
-
-  // SPI Microview via USB
-  var opts = {
-    width: 64,
-    height: 48, 
-    microview: true
-  };
-
-  var oled = new Oled(board, five, opts);
-
-  test(oled);
+var oled = new Oled({
+	width: 128,
+	height: 64,
 });
+
+test(oled);
 
 // sequence of test displays
 function test(oled) {
@@ -46,7 +21,6 @@ function test(oled) {
 
   // make it prettier 
   oled.dimDisplay(true);
-
 
   temporal.queue([
     {

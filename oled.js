@@ -2,6 +2,10 @@ var i2c = require('i2c');
 
 var Oled = function(opts) {
 
+  if (opts == null) {
+    opts = {}
+  }
+
   this.HEIGHT = opts.height || 32;
   this.WIDTH = opts.width || 128;
   this.ADDRESS = opts.address || 0x3C;
