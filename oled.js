@@ -160,13 +160,14 @@ Oled.prototype.setCursor = function(x, y) {
 };
 
 // write text to the oled
-Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
+Oled.prototype.writeString = function(font, size, string, color, wrap, linespacing, sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
   var wordArr = string.split(' '),
       len = wordArr.length,
       // start x offset at cursor pos
       offset = this.cursor_x,
-      padding = 0, letspace = 1, leading = 2;
+      padding = 0, letspace = 1;
+  var leading = linespacing || 2;
 
   // loop through words
   for (var w = 0; w < len; w += 1) {
@@ -190,7 +191,7 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
       // read the bits in the bytes that make up the char
       var charBytes = this._readCharBytes(charBuf);
       // draw the entire character
-      this._drawChar(charBytes, size, false);
+      this._drawChar(font, charBytes, size, false);
 
       // calc new x position for the next char, add a touch of padding too if it's a non space char
       padding = (stringArr[i] === ' ') ? 0 : size + letspace;
@@ -211,21 +212,24 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
 };
 
 // draw an individual character to the screen
-Oled.prototype._drawChar = function(byteArray, size, sync) {
+Oled.prototype._drawChar = function(font, byteArray, size, sync) {
   // take your positions...
   var x = this.cursor_x,
       y = this.cursor_y;
 
+  var pagePos = 0;
+  var c = 0;
   // loop through the byte array containing the hexes for the char
   for (var i = 0; i < byteArray.length; i += 1) {
+    pagePos = Math.floor(i / font.width) * 8;
     for (var j = 0; j < 8; j += 1) {
       // pull color out
       var color = byteArray[i][j],
           xpos, ypos;
       // standard font size
       if (size === 1) {
-        xpos = x + i;
-        ypos = y + j;
+        xpos = x + c;
+        ypos = y + j + pagePos;
         this.drawPixel([xpos, ypos, color], false);
       } else {
         // MATH! Calculating pixel size multiplier to primitively scale the font
@@ -234,6 +238,7 @@ Oled.prototype._drawChar = function(byteArray, size, sync) {
         this.fillRect(xpos, ypos, size, size, color, false);
       }
     }
+    c = (c < font.width -1) ? c += 1 : 0;
   }
 };
 
@@ -295,6 +300,9 @@ Oled.prototype.update = function() {
     }
 
   }.bind(this));
+
+  // now that all bytes are synced, reset dirty state
+  this.dirtyBytes = [];
 };
 
 // send dim display command to oled
@@ -473,26 +481,26 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
   if (immed) {
     this._updateDirtyBytes(this.dirtyBytes);
   }
-};
+}
 
 // Draw an outlined  rectangle
 Oled.prototype.drawRect = function(x, y, w, h, color, sync){
-	var immed = (typeof sync === 'undefined') ? true : sync;
-	//top
-	this.drawLine(x, y, x + w, y,color,false);
+  var immed = (typeof sync === 'undefined') ? true : sync;
+  //top 
+  this.drawLine(x, y, x + w, y,color,false);
 
-	//left
-	this.drawLine(x, y + 1, x, y + h - 1, color, false);
+  //left
+  this.drawLine(x, y + 1, x, y + h - 1, color, false);
 
-	//right
-	this.drawLine(x + w, y + 1, x + w, y + h - 1, color, false);
+  //right
+  this.drawLine(x + w, y + 1, x + w, y + h - 1, color, false);
 
-	//bottom
-	this.drawLine(x, y + h - 1, x + w, y + h - 1, color, false);
+  //bottom
+  this.drawLine(x, y + h - 1, x + w, y + h - 1, color, false);
 
-	if (immed) {
-		this._updateDirtyBytes(this.dirtyBytes);
-	}
+  if (immed) {
+    this._updateDirtyBytes(this.dirtyBytes);
+  }
 };
 
 // draw a filled rectangle on the oled
@@ -570,32 +578,45 @@ Oled.prototype.startScroll = function(dir, start, stop) {
       cmdSeq.push(this.RIGHT_HORIZONTAL_SCROLL); break;
     case 'left':
       cmdSeq.push(this.LEFT_HORIZONTAL_SCROLL); break;
-    // TODO: left diag and right diag not working yet
     case 'left diagonal':
       cmdSeq.push(
-        this.SET_VERTICAL_SCROLL_AREA, 0x00,
+        this.SET_VERTICAL_SCROLL_AREA,
+        0x00,
+        this.HEIGHT,
         this.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL,
-        this.HEIGHT
+        0x00,
+        start,
+        0x00,
+        stop,
+        0x01,
+        this.ACTIVATE_SCROLL
       );
       break;
-    // TODO: left diag and right diag not working yet
     case 'right diagonal':
       cmdSeq.push(
-        this.SET_VERTICAL_SCROLL_AREA, 0x00,
+        this.SET_VERTICAL_SCROLL_AREA,
+        0x00,
+        this.HEIGHT,
         this.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL,
-        this.HEIGHT
+        0x00,
+        start,
+        0x00,
+        stop,
+        0x01,
+        this.ACTIVATE_SCROLL
       );
       break;
   }
 
   this._waitUntilReady(function() {
-    cmdSeq.push(
-      0x00, start,
-      0x00, stop,
-      // TODO: these need to change when diagonal
-      0x00, 0xFF,
-      this.ACTIVATE_SCROLL
-    );
+    if(dir === 'right' || dir === 'left'){
+      cmdSeq.push(
+        0x00, start,
+        0x00, stop,
+        0x00, 0xFF,
+        this.ACTIVATE_SCROLL
+      );
+    }
 
     var i, cmdSeqLen = cmdSeq.length;
 
