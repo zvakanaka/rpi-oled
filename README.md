@@ -7,7 +7,8 @@ OLED JS Pi
 
 ## What is this?
 
-A NodeJS driver for I2C/SPI compatible monochrome OLED screens; to be used on the Raspberry Pi! Works with 128 x 32, 128 x 64 and 96 x 16 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
+A NodeJS driver for I2C/SPI compatible monochrome OLED screens. Only I2C is supported at this time.
+Compatible with Raspberry Pi, Works with 128 x 32, 128 x 64, 96 x 16 and 64x48 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
 
 This based on the Blog Post and code by Suz Hinton - [Read her blog post about how OLED screens work](http://meow.noopkat.com/oled-js/)!
 
@@ -20,7 +21,8 @@ If you haven't already, install [NodeJS](http://nodejs.org/).
 `npm install oled-js-pi`
 
 ## I2C screens
-Hook up I2C compatible oled to the Raspberry Pi. Pins: SDL and SCL
+
+Hook up I2C compatible oled to the Raspberry Pi. Pins: SDL and SCL.
 
 ### I2C example
 
@@ -30,17 +32,53 @@ var oled = require('oled-js-pi');
 var opts = {
   width: 128,
   height: 64,
-  address: 0x3D
 };
 
 var oled = new oled(opts);
 
 // do cool oled things here
-
 ```
 
+The above code uses the default I2C address of 0x3C and the I2C device /dev/i2c-1 (default on newer Raspberry Pi boards).
+
+Additional options that can be passed, with default values shown:
+
+```javascript
+var opts = {
+  width: 128, // screen width
+  height; 32, // screen height
+  address: 0x3C, // Pass I2C address of screen if it is not the default of 0x3C
+  device: '/dev/i2c-1', // Pass your i2c device here if it is not /dev/i2c-1
+  microview: true, // set to true if you have a microview display
+};
+```
+
+Allowable combinations for screen width and height are:
+128x32, 128x64, 96x16 and 64x48.
+
 ### Wait, how do I find out the I2C address of my OLED screen?
-Check your screen's documentation...
+
+You can use the i2c npm library for this. Make sure the display is connected to the I2C bus with pull-ups and run the
+following:
+
+```
+npm install i2c
+```
+
+Then run the following script:
+
+```javascript
+var i2c = require('i2c');
+var address = 0x3C;
+var wire = new i2c(address, {device: '/dev/i2c-1'}); 
+ 
+wire.scan(function(err, data) {
+  // result contains an array of addresses 
+});
+```
+
+This will return the I2C addresses of any I2C devices connected to the bus at /dev/i2c-1. If you have other devices
+than the screen attached, you will need to manually filter those out.
 
 ## Available methods
 
@@ -136,6 +174,40 @@ Usage:
 oled.fillRect(1, 1, 10, 20, 1);
 ```
 
+### drawRect
+Draws an empty rectangle.
+
+Arguments:
++ int **x0, y0** - top left corner of rectangle
++ int **x1, y1** - bottom right corner of rectangle
++ int **color** - can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
+
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
+
+Usage:
+```javascript
+// args: (x0, y0, x1, y1, color)
+oled.drawRect(1, 1, 10, 20, 1);
+```
+
+### drawCircle
+Draws an empty circle.
+
+Arguments:
++ int **x** - x of circle's center
++ int **y** - y of circle's center
++ int **r** - radius of circle
++ int **color** - can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
+
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
+
+Usage:
+```javascript
+// args: (x, y, r, color)
+oled.drawCircle(30, 10, 5, 1);
+```
+
+
 ### drawBitmap
 Draws a bitmap using raw pixel data returned from an image parser. The image sourced must be monochrome, and indexed to only 2 colors. Resize the bitmap to your screen dimensions first. Using an image editor or ImageMagick might be required.
 
@@ -214,6 +286,7 @@ Arguments:
 + string **text** - the actual text you want to show on the display.
 + int **color** - color of text. Can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
 + bool **wrapping** - true applies word wrapping at the screen limit, false for no wrapping. If a long string without spaces is supplied as the text, just letter wrapping will apply instead.
++ int **linespacing** - amount of spacing between lines of text on the screen. Negative numbers are also ok.
 
 Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
