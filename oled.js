@@ -123,8 +123,16 @@ Oled.prototype._transfer = function(type, val) {
   } else {
     return;
   }
-
   this.wire.writeBytes(control, [val], function () {});
+};
+
+Oled.prototype._transferData = function(val) {
+  let control = 0x40;
+  var size = 32;
+  for (var i=0; i<val.length; i+=size) {
+      var smallarray = val.slice(i,i+size);
+      this.wire.writeBytes(control, smallarray, function () {});
+  }
 };
 
 // read a byte from the oled
@@ -148,12 +156,11 @@ Oled.prototype._waitUntilReady = function(callback) {
         // if not busy, it's ready for callback
         callback();
       } else {
-        setTimeout(tick, 0);
+        setTimeout(function(){tick(callback)}, 0);
       }
     });
   }
-
-  setTimeout(tick(callback), 0);
+  setTimeout(function(){tick(callback)}, 0);
 };
 
 // set starting position of a text string on the oled
@@ -298,9 +305,10 @@ Oled.prototype.update = function() {
     }
 
     // write buffer data
-    for (v = 0; v < bufferLen; v += 1) {
+    /*for (v = 0; v < bufferLen; v += 1) {
       this._transfer('data', this.buffer[v]);
-    }
+    }*/
+    this._transferData(this.buffer);
 
   }.bind(this));
 
@@ -455,12 +463,21 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
     for (v = 0; v < displaySeqLen; v += 1) {
       this._transfer('cmd', displaySeq[v]);
     }
+
+    var bytes = [];
+    var idx = 0;
     // send byte, then move on to next byte
     for (vp = pageStart; vp <= pageEnd; vp += 1) {
       for (vc = colStart; vc <= colEnd; vc += 1) {
-        this._transfer('data', this.buffer[this.WIDTH * vp + vc]);
+        //this._transfer('data', this.buffer[this.WIDTH * vp + vc]);
+        bytes[idx] = this.buffer[this.WIDTH * vp + vc];
+        idx++;
       }
     }
+
+    this._transferData(bytes);
+
+
 
   }.bind(this));
 
@@ -495,7 +512,7 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
 // Draw an outlined  rectangle
 Oled.prototype.drawRect = function(x, y, w, h, color, sync){
   var immed = (typeof sync === 'undefined') ? true : sync;
-  //top 
+  //top
   this.drawLine(x, y, x + w, y,color,false);
 
   //left
