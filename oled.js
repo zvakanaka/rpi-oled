@@ -306,9 +306,6 @@ Oled.prototype.update = function() {
     }
 
     // write buffer data
-    /*for (v = 0; v < bufferLen; v += 1) {
-      this._transfer('data', this.buffer[v]);
-    }*/
     this._transferData(this.buffer);
 
   }.bind(this));
@@ -470,15 +467,12 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
     // send byte, then move on to next byte
     for (vp = pageStart; vp <= pageEnd; vp += 1) {
       for (vc = colStart; vc <= colEnd; vc += 1) {
-        //this._transfer('data', this.buffer[this.WIDTH * vp + vc]);
         bytes[idx] = this.buffer[this.WIDTH * vp + vc];
         idx++;
       }
     }
 
     this._transferData(bytes);
-
-
 
   }.bind(this));
 
