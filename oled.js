@@ -11,6 +11,7 @@ var Oled = function(opts) {
   this.ADDRESS = opts.address || 0x3C;
   this.DEVICE = opts.device || '/dev/i2c-1';
   this.MICROVIEW = opts.microview || false;
+  this.DATA_SIZE = opts.datasize || 32;
 
   // create command buffers
   this.DISPLAY_OFF = 0xAE;
@@ -128,7 +129,7 @@ Oled.prototype._transfer = function(type, val) {
 
 Oled.prototype._transferData = function(val) {
   let control = 0x40;
-  var size = 32;
+  var size = this.DATA_SIZE;
   for (var i=0; i<val.length; i+=size) {
       var smallarray = val.slice(i,i+size);
       this.wire.writeBytes(control, smallarray, function () {});
