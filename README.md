@@ -1,27 +1,24 @@
 # rpi-oled [![NPM Version](https://img.shields.io/npm/v/rpi-oled.svg)](https://www.npmjs.com/package/rpi-oled)
-A collection of NodeJS command line tools and libraries for I2C compatible monochrome OLED screens. Compatible with Raspberry Pi, Works with 128 x 32, 128 x 64, 96 x 16 and 64x48 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
-
-The main difference of this library compared to other forks is the added command line tools. Additionally the display performance was increased greatly.
-
-This is based on the Blog Post and code by Suz Hinton - [Read her blog post about how OLED screens work](http://meow.noopkat.com/oled-js/)!
+A collection of NodeJS command line tools and libraries for I2C based SSD1306 compatible monochrome OLED screens. The main difference of this library compared to other forks is the added command line tools. Additionally the display performance was increased.
 
 ## Installation
 ### Software
 If you haven't already, install [NodeJS](http://nodejs.org/).
 
 Then install the software using:
-`npm install rpi-oled`
+`sudo npm install -g rpi-oled`
 
 ### Hardware
 Hook up your I2C compatible OLED display to the Raspberry Pi SDL and SCL pins as well as 3.3V power and ground.
 
 ### Test the software
 Run the following command:
+
 `rpi-oled writeString -t "Hello World"`
 
-If your I2C address is not the default `3C`, specify it using the -a parameter, e.g. `rpi-oled writeString -t "Hello World" -a 0x3C`
+This will try to connect to a 128x64 display with address 0x3C on the i2c bus 1, if any of these parameters are not correct for your setup you can change them using the following parameters:
 
-If your I2C bus is not the default `/dev/i2c-1`, specify it using the -a parameter, e.g. `rpi-oled writeString -t "Hello World" -b "/dev/i2c-0"`
+`rpi-oled writeString -t "Hello World" -a 0x3F -b "/dev/i2c-0" -w 64 -h 48`
 
 ### API Example
 ```javascript
@@ -37,8 +34,6 @@ var oled = new oled(opts);
 // do cool oled things here
 ```
 
-The above code uses the default I2C address of 0x3C and the I2C device /dev/i2c-1 (default on newer Raspberry Pi boards).
-
 Additional options that can be passed, with default values shown:
 
 ```javascript
@@ -46,6 +41,7 @@ var opts = {
   width: 128, // screen width
   height; 32, // screen height
   address: 0x3C, // Pass I2C address of screen if it is not the default of 0x3C
+  datasize: 8, // Change the amount of bytes sent at once (default 16)
   device: '/dev/i2c-1', // Pass your i2c device here if it is not /dev/i2c-1
   microview: true, // set to true if you have a microview display
 };
@@ -59,13 +55,16 @@ The package comes with the `rpi-oled` command line tool which can be used to dis
 
 The tool works similar to oher command line tools like git in that the first parameter of the command is always the command that is to be executed, followed by further parameters. All parameters except the command parameter are always optional.
 
+#### Available commands
+clearDisplay, writeString, dimDisplay, invertDisplay, turnOnDisplay, turnOffDisplay, drawPixel, drawLine, fillRect, drawRect, drawBitmap, startScroll, stopScroll, setCursor
+
 #### Global parameters
 - `--width` or `-w` Width of the display in pixel (default `128`)
 - `--height` or `-h` Height of the display in pixels (default `64`)
 - `--address` or `-a` The OLEDs I2C address (default `0x3C`)
 - `--bus` or `-b` The I2C bus to be used (default `"/dev/i2c-1"`)
-- `--datasize' The number of bytes to send via I2C in one go (default `16`)
-- `--microviev' Add this parameter if you're using a microview display (default not enabled)
+- `--datasize` The number of bytes to send via I2C in one go (default `16`)
+- `--microviev` Add this parameter if you're using a microview display (default not enabled)
 - `--noclear` or `-`n Do not clear the display before drawing command (default not enabled)
 
 #### Command-specific parameters
@@ -90,7 +89,9 @@ The tool works similar to oher command line tools like git in that the first par
 
 
 ## Library API
-The main part of the package is the library, the API didn't change much from previous forks of this library. Below is an overview of the available methods, the appropriate parameters for the `rpi-oled` command line tool are listed as well.
+The main part of the package is the library, the API didn't change much from previous forks of this library, below is an overview of the available methods.
+
+The appropriate parameters for the `rpi-oled` command line tool are listed as well. All parameters except the command parameter are always optional.
 
 ### clearDisplay
 Fills the buffer with 'off' pixels (0x00). Optional bool argument specifies whether screen updates immediately with result. Default is true.
@@ -328,7 +329,7 @@ var font = require('oled-font-5x7');
 oled.setCursor(1, 1);
 oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
 ```
-Command line: `rpi-oled writeString -f "oled-font-5x7" -s 1 -t "Hello World" -c 1 --wrapping --linespacing 3`
+Command line: `rpi-oled writeString -f "oled-font-5x7" -s 1 -t "Hello World" -c 1 --wrapping --linespacing 3 -x 10 -y 10`
 
 ### update
 Sends the entire buffer in its current state to the oled display, effectively syncing the two. This method generally does not need to be called, unless you're messing around with the framebuffer manually before you're ready to sync with the display. It's also needed if you're choosing not to draw on the screen immediately with the built in methods.
