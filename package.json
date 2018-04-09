@@ -1,7 +1,7 @@
 {
   "name": "rpi-oled",
   "version": "0.9.0",
-  "description": "NodeJS module for controlling oled devices on the Raspbery Pi (including the SSD1306 OLED screens)",
+  "description": "NodeJS library and command line tool for controlling SSD1306 compatible I2C OLED screens on the Raspbery Pi",
   "main": "oled.js",
   "bin": {
     "rpi-oled": "./rpi-oled.js"
@@ -25,7 +25,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/perjg/oled_ssd1306_i2c.git"
+    "url": "https://github.com/normen/rpi_oled.git"
   },
   "keywords": [
     "Raspbery Pi",
