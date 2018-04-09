@@ -307,7 +307,7 @@ pngtolcd('nyan-cat.png', true, function(err, bitmap) {
 ```
 Command line:
 
-`rpi-oled drawBitmap ./path/to/image.png`
+`rpi-oled drawBitmap -i "./path/to/image.png"`
 
 #### startScroll
 Scrolls the current display either left or right.
