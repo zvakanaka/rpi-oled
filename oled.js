@@ -11,7 +11,7 @@ var Oled = function(opts) {
   this.ADDRESS = opts.address || 0x3C;
   this.DEVICE = opts.device || '/dev/i2c-1';
   this.MICROVIEW = opts.microview || false;
-  this.DATA_SIZE = opts.datasize || 32;
+  this.DATA_SIZE = opts.datasize || 16;
 
   // create command buffers
   this.DISPLAY_OFF = 0xAE;
