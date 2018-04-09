@@ -20,6 +20,71 @@ This will try to connect to a 128x64 display with address 0x3C on the i2c bus 1,
 
 `rpi-oled writeString -t "Hello World" -a 0x3F -b "/dev/i2c-0" -w 64 -h 48`
 
+Valid combinations for screen width and height are: 128x32, 128x64, 96x16 and 64x48.
+
+## Command line tools
+### rpi-oled
+The package comes with the `rpi-oled` command line tool which can be used to display text and graphics on the OLED from the RasPi command line. All functions of the API can be executed using this tool as well.
+
+The tool works similar to oher command line tools like git in that the first parameter of the command is always the command that is to be executed, followed by further parameters. All parameters except the command parameter are always optional.
+
+#### Available commands
+clearDisplay, dimDisplay, invertDisplay, turnOnDisplay, turnOffDisplay, drawPixel, drawLine, fillRect, drawRect, drawBitmap, writeString, startScroll, stopScroll, setCursor
+
+#### Global parameters
+- `--width` or `-w` Width of the display in pixel (default `128`)
+- `--height` or `-h` Height of the display in pixels (default `64`)
+- `--address` or `-a` The OLEDs I2C address (default `0x3C`)
+- `--bus` or `-b` The I2C bus to be used (default `"/dev/i2c-1"`)
+- `--datasize` The number of bytes to send via I2C in one go (default `16`)
+- `--microviev` Add this parameter if you're using a microview display (default not enabled)
+- `--noclear` or `-n` Do not clear the display before drawing command (default not enabled)
+
+#### Command-specific parameters
+- `--size` or `-s` The font size for text (default `1`)
+- `--text` or `-t` Text to display (default `""`)
+- `--x0` or `-x` X position for drawing (default `0`)
+- `--y0` or `-y` Y position for drawing (default `0`)
+- `--x1` X1 position for drawing (default `0`)
+- `--y1` Y1 position for drawing (default `0`)
+- `--raduis` or `-r` Radius for circle (default `10`)
+- `--color` or `-c` Color to draw in, 1=white 0=black (default `1`)
+- `--font` or `-f` Font name to use (default `"oled-font-5x7"`)
+- `--wrapping` Enable wrapping for text display (default not enabled)
+- `--linespacing` Line spacing offset for text display (default `0`)
+- `--pixels` or `-p` Pixel data to display in array format (no default)
+- `--image` or `-i` Path to PNG image to display, will be automatically resized and converted (no default)
+- `--disable` or `-d` Disable a boolean parameter (no default)
+- `--direction` Direction for scrolling (default `"left"`)
+- `--start` Start position for scrolling (default `0`)
+- `--stop` Stop position for scrolling (default `0`)
+- `--help` or `-?` Display help
+
+#### Examples
+`rpi-oled writeString -t "Hello World"`
+
+`rpi-oled drawCircle -x 20 -y 20 -r 10`
+
+### rpi-oled-status
+This utility is meant to be run as a service and displays the Raspberry Pi host name as well as bar graphs for its CPU load, memory load and disk load. It also displays the uptime of the Raspberry Pi.
+
+#### Parameters
+- `--width` or `-w` Width of the display in pixel (default `128`)
+- `--height` or `-h` Height of the display in pixels (default `64`)
+- `--address` or `-a` The OLEDs I2C address (default `0x3C`)
+- `--bus` or `-b` The I2C bus to be used (default `"/dev/i2c-1"`)
+- `--datasize` The number of bytes to send via I2C in one go (default `16`)
+- `--microviev` Add this parameter if you're using a microview display (default not enabled)
+- `--updaterate` or `-u` The update rate for the display in milliseconds (default `5000`)
+
+#### Example
+`rpi-oled-status -a 0x38`
+
+## Library API
+The main part of the package is the library, the API didn't change much from previous forks of this library, below is an overview of the available methods.
+
+The appropriate parameters for the `rpi-oled` command line tool are listed as well. All parameters except the command parameter are always optional.
+
 ### API Example
 ```javascript
 var oled = require('rpi-oled');
@@ -47,99 +112,65 @@ var opts = {
 };
 ```
 
-Allowable combinations for screen width and height are:
-128x32, 128x64, 96x16 and 64x48.
+### API Overview
 
-## Command line tool
-The package comes with the `rpi-oled` command line tool which can be used to display text and graphics on the OLED from the RasPi command line. All functions of the API can be executed using this tool as well.
-
-The tool works similar to oher command line tools like git in that the first parameter of the command is always the command that is to be executed, followed by further parameters. All parameters except the command parameter are always optional.
-
-#### Available commands
-clearDisplay, writeString, dimDisplay, invertDisplay, turnOnDisplay, turnOffDisplay, drawPixel, drawLine, fillRect, drawRect, drawBitmap, startScroll, stopScroll, setCursor
-
-#### Global parameters
-- `--width` or `-w` Width of the display in pixel (default `128`)
-- `--height` or `-h` Height of the display in pixels (default `64`)
-- `--address` or `-a` The OLEDs I2C address (default `0x3C`)
-- `--bus` or `-b` The I2C bus to be used (default `"/dev/i2c-1"`)
-- `--datasize` The number of bytes to send via I2C in one go (default `16`)
-- `--microviev` Add this parameter if you're using a microview display (default not enabled)
-- `--noclear` or `-`n Do not clear the display before drawing command (default not enabled)
-
-#### Command-specific parameters
-- `--size` or `-s` The font size for text (default `1`)
-- `--text` or `-t` Text to display (default `""`)
-- `--x0` or `-x` X position for drawing (default `0`)
-- `--y0` or `-y` Y position for drawing (default `0`)
-- `--x1` X1 position for drawing (default `0`)
-- `--y1` Y1 position for drawing (default `0`)
-- `--raduis` or `-r` Radius for circle (default `10`)
-- `--color` or `-c` Color to draw in, 1=white 0=black (default `1`)
-- `--font` or `-f` Font name to use (default `"oled-font-5x7"`)
-- `--wrapping` Enable wrapping for text display (default not enabled)
-- `--linespacing` Line spacing offset for text display (default `0`)
-- `--pixels` or `-p` Pixel data to display in array format (no default)
-- `--image` or `-i` Path to PNG image to display, will be automatically resized and converted (no default)
-- `--disable` or `-d` Disable a boolean parameter (no default)
-- `--direction` Direction for scrolling (default `"left"`)
-- `--start` Start position for scrolling (default `0`)
-- `--stop` Stop position for scrolling (default `0`)
-- `--help` or `-?` Display help
-
-
-## Library API
-The main part of the package is the library, the API didn't change much from previous forks of this library, below is an overview of the available methods.
-
-The appropriate parameters for the `rpi-oled` command line tool are listed as well. All parameters except the command parameter are always optional.
-
-### clearDisplay
+#### clearDisplay
 Fills the buffer with 'off' pixels (0x00). Optional bool argument specifies whether screen updates immediately with result. Default is true.
 
 Usage:
 ```javascript
 oled.clearDisplay();
 ```
-Command line: `rpi-oled clearDisplay`
+Command line:
 
-### dimDisplay
+`rpi-oled clearDisplay`
+
+#### dimDisplay
 Lowers the contrast on the display. This method takes one argument, a boolean. True for dimming, false to restore normal contrast.
 
 Usage:
 ```javascript
 oled.dimDisplay(true|false);
 ```
-Command line: `rpi-oled dimDisplay` or `rpi-oled dimDisplay -d` to disable dimming
+Command line:
 
-### invertDisplay
+`rpi-oled dimDisplay` or `rpi-oled dimDisplay -d` to disable dimming
+
+#### invertDisplay
 Inverts the pixels on the display. Black becomes white, white becomes black. This method takes one argument, a boolean. True for inverted state, false to restore normal pixel colors.
 
 Usage:
 ```javascript
 oled.invertDisplay(true|false);
 ```
-Command line: `rpi-oled invertDisplay` or `rpi-oled invertDisplay -d` to disable dimming
+Command line:
 
-### turnOffDisplay
+`rpi-oled invertDisplay` or `rpi-oled invertDisplay -d` to disable dimming
+
+#### turnOffDisplay
 Turns the display off.
 
 Usage:
 ```javascript
 oled.turnOffDisplay();
 ```
-Command line: `rpi-oled turnOffDisplay`
+Command line:
 
-### turnOnDisplay
+`rpi-oled turnOffDisplay`
+
+#### turnOnDisplay
 Turns the display on.
 
 Usage:
 ```javascript
 oled.turnOnDisplay();
 ```
-Command line: `rpi-oled turnOnDisplay`
+Command line:
+
+`rpi-oled turnOnDisplay`
 
 
-### drawPixel
+#### drawPixel
 Draws a pixel at a specified position on the display. This method takes one argument: a multi-dimensional array containing either one or more sets of pixels.
 
 Each pixel needs an x position, a y position, and a color. Colors can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
@@ -157,9 +188,11 @@ oled.drawPixel([
 	[64, 16, 1]
 ]);
 ```
-Command line: `rpi-oled drawPixel -p "[[128, 1, 1],[128, 32, 1],[128, 16, 1],[64, 16, 1]]"`
+Command line:
 
-### drawLine
+`rpi-oled drawPixel -p "[[128, 1, 1],[128, 32, 1],[128, 16, 1],[64, 16, 1]]"`
+
+#### drawLine
 Draws a one pixel wide line.
 
 Arguments:
@@ -174,9 +207,11 @@ Usage:
 // args: (x0, y0, x1, y1, color)
 oled.drawLine(1, 1, 128, 32, 1);
 ```
-Command line: `rpi-oled drawline --x0 1 --y0 1 --x1 128 --y1 32 -c 1`
+Command line:
 
-### fillRect
+`rpi-oled drawline --x0 1 --y0 1 --x1 128 --y1 32 -c 1`
+
+#### fillRect
 Draws a filled rectangle.
 
 Arguments:
@@ -191,9 +226,11 @@ Usage:
 // args: (x0, y0, x1, y1, color)
 oled.fillRect(1, 1, 10, 20, 1);
 ```
-Command line: `rpi-oled fillRect --x0 1 --y0 1 --x1 10 --y1 20 -c 1`
+Command line:
 
-### drawRect
+`rpi-oled fillRect --x0 1 --y0 1 --x1 10 --y1 20 -c 1`
+
+#### drawRect
 Draws an empty rectangle.
 
 Arguments:
@@ -208,9 +245,11 @@ Usage:
 // args: (x0, y0, x1, y1, color)
 oled.drawRect(1, 1, 10, 20, 1);
 ```
-Command line: `rpi-oled drawRect --x0 1 --y0 1 --x1 10 --y1 20 -c 1`
+Command line:
 
-### drawCircle
+`rpi-oled drawRect --x0 1 --y0 1 --x1 10 --y1 20 -c 1`
+
+#### drawCircle
 Draws an empty circle.
 
 Arguments:
@@ -226,10 +265,12 @@ Usage:
 // args: (x, y, r, color)
 oled.drawCircle(30, 10, 5, 1);
 ```
-Command line: `rpi-oled drawCircle -x 30 -y 10 -r 5 -c 1`
+Command line:
+
+`rpi-oled drawCircle -x 30 -y 10 -r 5 -c 1`
 
 
-### drawBitmap
+#### drawBitmap
 Draws a bitmap using raw pixel data returned from an image parser. The image sourced must be monochrome, and indexed to only 2 colors. Resize the bitmap to your screen dimensions first. Using an image editor or ImageMagick might be required.
 
 Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
@@ -264,9 +305,11 @@ pngtolcd('nyan-cat.png', true, function(err, bitmap) {
   oled.update();
 });
 ```
-Command line: `rpi-oled drawBitmap ./path/to/image.png`
+Command line:
 
-### startScroll
+`rpi-oled drawBitmap ./path/to/image.png`
+
+#### startScroll
 Scrolls the current display either left or right.
 Arguments:
 + string **direction** - direction of scrolling. 'left' or 'right'
@@ -278,18 +321,22 @@ Usage:
 // args: (direction, start, stop)
 oled.startscroll('left', 0, 15); // this will scroll an entire 128 x 32 screen
 ```
-Command line: `rpi-oled startScroll --direction left --start 0 --stop 15`
+Command line:
 
-### stopScroll
+`rpi-oled startScroll --direction left --start 0 --stop 15`
+
+#### stopScroll
 Stops all current scrolling behaviour.
 
 Usage:
 ```javascript
 oled.stopscroll();
 ```
-Command line: `rpi-oled stopScroll`
+Command line:
 
-### setCursor
+`rpi-oled stopScroll`
+
+#### setCursor
 Sets the x and y position of 'cursor', when about to write text. This effectively helps tell the display where to start typing when writeString() method is called.
 
 Call setCursor just before writeString().
@@ -299,9 +346,11 @@ Usage:
 // sets cursor to x = 1, y = 1
 oled.setCursor(1, 1);
 ```
-Command line: `rpi-oled setCursor -x 1 -y 1`
+Command line:
 
-### writeString
+`rpi-oled setCursor -x 1 -y 1`
+
+#### writeString
 Writes a string of text to the display.
 Call setCursor() just before, if you need to set starting text position.
 
@@ -329,12 +378,19 @@ var font = require('oled-font-5x7');
 oled.setCursor(1, 1);
 oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
 ```
-Command line: `rpi-oled writeString -f "oled-font-5x7" -s 1 -t "Hello World" -c 1 --wrapping --linespacing 3 -x 10 -y 10`
+Command line:
 
-### update
+`rpi-oled writeString -f "oled-font-5x7" -s 1 -t "Hello World" -c 1 --wrapping --linespacing 3 -x 1 -y 1`
+
+Note that the rpi-oled tool allows you to combine the setCursor and writeString command by simply supplying x and y parameters.
+
+#### update
 Sends the entire buffer in its current state to the oled display, effectively syncing the two. This method generally does not need to be called, unless you're messing around with the framebuffer manually before you're ready to sync with the display. It's also needed if you're choosing not to draw on the screen immediately with the built in methods.
 
 Usage:
 ```javascript
 oled.update();
 ```
+Command line:
+
+`No equivalent`

@@ -1,17 +1,20 @@
 {
   "name": "rpi-oled",
-  "version": "0.9.0",
-  "description": "NodeJS library and command line tool for controlling SSD1306 compatible I2C OLED screens on the Raspbery Pi",
+  "version": "0.9.1",
+  "description": "NodeJS library and command line tools for controlling SSD1306 compatible I2C OLED screens on the Raspbery Pi",
   "main": "oled.js",
   "bin": {
-    "rpi-oled": "./rpi-oled.js"
+    "rpi-oled": "./rpi-oled.js",
+    "rpi-oled-status": "./rpi-oled-status.js"
   },
   "dependencies": {
+    "check-disk-space": "^1.5.0",
     "command-line-args": "^5.0.2",
     "i2c": "^0.2.3",
     "oled-font-5x7": "^1.0.0",
     "png-to-lcd": "^1.0.2",
-    "pngparse": "^2.0.1"
+    "pngparse": "^2.0.1",
+    "system-health-monitor": "^1.1.0"
   },
   "devDependencies": {
     "oled-font-5x7": "~1.0.0",
