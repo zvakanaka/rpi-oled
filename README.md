@@ -1,33 +1,31 @@
-![‘npm version’](http://img.shields.io/npm/v/oled-js.svg?style=flat) ![‘downloads over month’](http://img.shields.io/npm/dm/oled-js.svg?style=flat)
+# rpi-oled [![NPM Version](https://img.shields.io/npm/v/rpi-oled.svg)](https://www.npmjs.com/package/rpi-oled)
+A collection of NodeJS command line tools and libraries for I2C compatible monochrome OLED screens. Compatible with Raspberry Pi, Works with 128 x 32, 128 x 64, 96 x 16 and 64x48 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
 
-OLED JS Pi
-========================
+The main difference of this library compared to other forks is the added command line tools. Additionally the display performance was increased greatly.
 
-![oled-cat](http://f.cl.ly/items/2G041X2C1o2A1n2D3S18/cat-oled.png)
+This is based on the Blog Post and code by Suz Hinton - [Read her blog post about how OLED screens work](http://meow.noopkat.com/oled-js/)!
 
-## What is this?
-
-A NodeJS driver for I2C/SPI compatible monochrome OLED screens. Only I2C is supported at this time.
-Compatible with Raspberry Pi, Works with 128 x 32, 128 x 64, 96 x 16 and 64x48 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
-
-This based on the Blog Post and code by Suz Hinton - [Read her blog post about how OLED screens work](http://meow.noopkat.com/oled-js/)!
-
-OLED screens are really cool - now you can control them with JavaScript!
-
-## Install
-
+## Installation
+### Software
 If you haven't already, install [NodeJS](http://nodejs.org/).
 
-`npm install oled-ssd1306-i2c`
+Then install the software using:
+`npm install rpi-oled`
 
-## I2C screens
+### Hardware
+Hook up your I2C compatible OLED display to the Raspberry Pi SDL and SCL pins as well as 3.3V power and ground.
 
-Hook up I2C compatible oled to the Raspberry Pi. Pins: SDL and SCL.
+### Test the software
+Run the following command:
+`rpi-oled writeString -t "Hello World"`
 
-### I2C example
+If your I2C address is not the default `3C`, specify it using the -a parameter, e.g. `rpi-oled writeString -t "Hello World" -a 0x3C`
 
+If your I2C bus is not the default `/dev/i2c-1`, specify it using the -a parameter, e.g. `rpi-oled writeString -t "Hello World" -b "/dev/i2c-0"`
+
+### API Example
 ```javascript
-var oled = require('oled-ssd1306-i2c');
+var oled = require('rpi-oled');
 
 var opts = {
   width: 128,
@@ -56,31 +54,43 @@ var opts = {
 Allowable combinations for screen width and height are:
 128x32, 128x64, 96x16 and 64x48.
 
-### Wait, how do I find out the I2C address of my OLED screen?
+## Command line tool
+The package comes with the `rpi-oled` command line tool which can be used to display text and graphics on the OLED from the RasPi command line. All functions of the API can be executed using this tool as well.
 
-You can use the i2c npm library for this. Make sure the display is connected to the I2C bus with pull-ups and run the
-following:
+The tool works similar to oher command line tools like git in that the first parameter of the command is always the command that is to be executed, followed by further parameters. All parameters except the command parameter are always optional.
 
-```
-npm install i2c
-```
+#### Global parameters
+- `--width` or `-w` Width of the display in pixel (default `128`)
+- `--height` or `-h` Height of the display in pixels (default `64`)
+- `--address` or `-a` The OLEDs I2C address (default `0x3C`)
+- `--bus` or `-b` The I2C bus to be used (default `"/dev/i2c-1"`)
+- `--datasize' The number of bytes to send via I2C in one go (default `16`)
+- `--microviev' Add this parameter if you're using a microview display (default not enabled)
+- `--noclear` or `-`n Do not clear the display before drawing command (default not enabled)
 
-Then run the following script:
+#### Command-specific parameters
+- `--size` or `-s` The font size for text (default `1`)
+- `--text` or `-t` Text to display (default `""`)
+- `--x0` or `-x` X position for drawing (default `0`)
+- `--y0` or `-y` Y position for drawing (default `0`)
+- `--x1` X1 position for drawing (default `0`)
+- `--y1` Y1 position for drawing (default `0`)
+- `--raduis` or `-r` Radius for circle (default `10`)
+- `--color` or `-c` Color to draw in, 1=white 0=black (default `1`)
+- `--font` or `-f` Font name to use (default `"oled-font-5x7"`)
+- `--wrapping` Enable wrapping for text display (default not enabled)
+- `--linespacing` Line spacing offset for text display (default `0`)
+- `--pixels` or `-p` Pixel data to display in array format (no default)
+- `--image` or `-i` Path to PNG image to display, will be automatically resized and converted (no default)
+- `--disable` or `-d` Disable a boolean parameter (no default)
+- `--direction` Direction for scrolling (default `"left"`)
+- `--start` Start position for scrolling (default `0`)
+- `--stop` Stop position for scrolling (default `0`)
+- `--help` or `-?` Display help
 
-```javascript
-var i2c = require('i2c');
-var address = 0x3C;
-var wire = new i2c(address, {device: '/dev/i2c-1'}); 
- 
-wire.scan(function(err, data) {
-  // result contains an array of addresses 
-});
-```
 
-This will return the I2C addresses of any I2C devices connected to the bus at /dev/i2c-1. If you have other devices
-than the screen attached, you will need to manually filter those out.
-
-## Available methods
+## Library API
+The main part of the package is the library, the API didn't change much from previous forks of this library. Below is an overview of the available methods, the appropriate parameters for the `rpi-oled` command line tool are listed as well.
 
 ### clearDisplay
 Fills the buffer with 'off' pixels (0x00). Optional bool argument specifies whether screen updates immediately with result. Default is true.
@@ -89,6 +99,7 @@ Usage:
 ```javascript
 oled.clearDisplay();
 ```
+Command line: `rpi-oled clearDisplay`
 
 ### dimDisplay
 Lowers the contrast on the display. This method takes one argument, a boolean. True for dimming, false to restore normal contrast.
@@ -97,6 +108,7 @@ Usage:
 ```javascript
 oled.dimDisplay(true|false);
 ```
+Command line: `rpi-oled dimDisplay` or `rpi-oled dimDisplay -d` to disable dimming
 
 ### invertDisplay
 Inverts the pixels on the display. Black becomes white, white becomes black. This method takes one argument, a boolean. True for inverted state, false to restore normal pixel colors.
@@ -105,6 +117,7 @@ Usage:
 ```javascript
 oled.invertDisplay(true|false);
 ```
+Command line: `rpi-oled invertDisplay` or `rpi-oled invertDisplay -d` to disable dimming
 
 ### turnOffDisplay
 Turns the display off.
@@ -113,6 +126,7 @@ Usage:
 ```javascript
 oled.turnOffDisplay();
 ```
+Command line: `rpi-oled turnOffDisplay`
 
 ### turnOnDisplay
 Turns the display on.
@@ -121,6 +135,7 @@ Usage:
 ```javascript
 oled.turnOnDisplay();
 ```
+Command line: `rpi-oled turnOnDisplay`
 
 
 ### drawPixel
@@ -141,6 +156,7 @@ oled.drawPixel([
 	[64, 16, 1]
 ]);
 ```
+Command line: `rpi-oled drawPixel -p "[[128, 1, 1],[128, 32, 1],[128, 16, 1],[64, 16, 1]]"`
 
 ### drawLine
 Draws a one pixel wide line.
@@ -157,6 +173,7 @@ Usage:
 // args: (x0, y0, x1, y1, color)
 oled.drawLine(1, 1, 128, 32, 1);
 ```
+Command line: `rpi-oled drawline --x0 1 --y0 1 --x1 128 --y1 32 -c 1`
 
 ### fillRect
 Draws a filled rectangle.
@@ -173,6 +190,7 @@ Usage:
 // args: (x0, y0, x1, y1, color)
 oled.fillRect(1, 1, 10, 20, 1);
 ```
+Command line: `rpi-oled fillRect --x0 1 --y0 1 --x1 10 --y1 20 -c 1`
 
 ### drawRect
 Draws an empty rectangle.
@@ -189,6 +207,7 @@ Usage:
 // args: (x0, y0, x1, y1, color)
 oled.drawRect(1, 1, 10, 20, 1);
 ```
+Command line: `rpi-oled drawRect --x0 1 --y0 1 --x1 10 --y1 20 -c 1`
 
 ### drawCircle
 Draws an empty circle.
@@ -206,6 +225,7 @@ Usage:
 // args: (x, y, r, color)
 oled.drawCircle(30, 10, 5, 1);
 ```
+Command line: `rpi-oled drawCircle -x 30 -y 10 -r 5 -c 1`
 
 
 ### drawBitmap
@@ -243,6 +263,7 @@ pngtolcd('nyan-cat.png', true, function(err, bitmap) {
   oled.update();
 });
 ```
+Command line: `rpi-oled drawBitmap ./path/to/image.png`
 
 ### startScroll
 Scrolls the current display either left or right.
@@ -256,6 +277,7 @@ Usage:
 // args: (direction, start, stop)
 oled.startscroll('left', 0, 15); // this will scroll an entire 128 x 32 screen
 ```
+Command line: `rpi-oled startScroll --direction left --start 0 --stop 15`
 
 ### stopScroll
 Stops all current scrolling behaviour.
@@ -264,6 +286,7 @@ Usage:
 ```javascript
 oled.stopscroll();
 ```
+Command line: `rpi-oled stopScroll`
 
 ### setCursor
 Sets the x and y position of 'cursor', when about to write text. This effectively helps tell the display where to start typing when writeString() method is called.
@@ -275,9 +298,10 @@ Usage:
 // sets cursor to x = 1, y = 1
 oled.setCursor(1, 1);
 ```
+Command line: `rpi-oled setCursor -x 1 -y 1`
 
 ### writeString
-Writes a string of text to the display.  
+Writes a string of text to the display.
 Call setCursor() just before, if you need to set starting text position.
 
 Arguments:
@@ -304,6 +328,7 @@ var font = require('oled-font-5x7');
 oled.setCursor(1, 1);
 oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
 ```
+Command line: `rpi-oled writeString -f "oled-font-5x7" -s 1 -t "Hello World" -c 1 --wrapping --linespacing 3`
 
 ### update
 Sends the entire buffer in its current state to the oled display, effectively syncing the two. This method generally does not need to be called, unless you're messing around with the framebuffer manually before you're ready to sync with the display. It's also needed if you're choosing not to draw on the screen immediately with the built in methods.
@@ -312,6 +337,3 @@ Usage:
 ```javascript
 oled.update();
 ```
-
-Forked from https://github.com/kd7yva/oled-js-pi
-
