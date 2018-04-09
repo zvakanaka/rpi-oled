@@ -2,14 +2,29 @@
 A collection of NodeJS command line tools and libraries for I2C based SSD1306 compatible monochrome OLED screens. The main difference of this library compared to other forks is the added command line tools. Additionally the display performance was increased.
 
 ## Installation
+These instructions assume you install on Raspberry Pi, the software should however work on most platforms.
+
 ### Software
-If you haven't already, install [NodeJS](http://nodejs.org/).
+Install NodeJS
+
+`curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -`
+
+`sudo apt install -y nodejs`
+
+Install the needed native i2c libraries
+
+`sudo apt-get install i2c-tools libi2c-dev`
+
+Enable i2c on your Raspberry Pi, the easiest way is using the raspi-config tool
+
+`sudo raspi-config`
 
 Then install the software using:
+
 `sudo npm install -g rpi-oled`
 
 ### Hardware
-Hook up your I2C compatible OLED display to the Raspberry Pi SDL and SCL pins as well as 3.3V power and ground.
+Hook up your I2C compatible OLED display to the Raspberry Pi SDL and SCL pins as well as 3.3V and ground.
 
 ### Test the software
 Run the following command:
@@ -23,21 +38,23 @@ This will try to connect to a 128x64 display with address 0x3C on the i2c bus 1,
 Valid combinations for screen width and height are: 128x32, 128x64, 96x16 and 64x48.
 
 ## Command line tools
+The following command line tools will be installed in your system when you install this package: `rpi-oled`, `rpi-oled-status`
+
 ### rpi-oled
-The package comes with the `rpi-oled` command line tool which can be used to display text and graphics on the OLED from the RasPi command line. All functions of the API can be executed using this tool as well.
+The `rpi-oled` command line tool can be used to display text and graphics on the OLED from the RasPi command line. All functions of the API can be executed using this tool as well.
 
-The tool works similar to oher command line tools like git in that the first parameter of the command is always the command that is to be executed, followed by further parameters. All parameters except the command parameter are always optional.
+The tool works similar to other command line tools like git in that the first parameter of the command is always the command that is to be executed, followed by further parameters. All parameters except the command parameter are always optional.
 
-#### Available commands
+#### OLED commands
 clearDisplay, dimDisplay, invertDisplay, turnOnDisplay, turnOffDisplay, drawPixel, drawLine, fillRect, drawRect, drawBitmap, writeString, startScroll, stopScroll, setCursor
 
 #### Global parameters
 - `--width` or `-w` Width of the display in pixel (default `128`)
-- `--height` or `-h` Height of the display in pixels (default `64`)
+- `--height` or `-h` Height of the display in pixel (default `64`)
 - `--address` or `-a` The OLEDs I2C address (default `0x3C`)
 - `--bus` or `-b` The I2C bus to be used (default `"/dev/i2c-1"`)
 - `--datasize` The number of bytes to send via I2C in one go (default `16`)
-- `--microviev` Add this parameter if you're using a microview display (default not enabled)
+- `--microview` Add this parameter if you're using a microview display (default not enabled)
 - `--noclear` or `-n` Do not clear the display before drawing command (default not enabled)
 
 #### Command-specific parameters
@@ -63,6 +80,8 @@ clearDisplay, dimDisplay, invertDisplay, turnOnDisplay, turnOffDisplay, drawPixe
 #### Examples
 `rpi-oled writeString -t "Hello World"`
 
+`rpi-oled writeString -t "New line of text" -y 10 -n`
+
 `rpi-oled drawCircle -x 20 -y 20 -r 10`
 
 ### rpi-oled-status
@@ -74,13 +93,15 @@ This utility is meant to be run as a service and displays the Raspberry Pi host 
 - `--address` or `-a` The OLEDs I2C address (default `0x3C`)
 - `--bus` or `-b` The I2C bus to be used (default `"/dev/i2c-1"`)
 - `--datasize` The number of bytes to send via I2C in one go (default `16`)
-- `--microviev` Add this parameter if you're using a microview display (default not enabled)
+- `--microview` Add this parameter if you're using a microview display (default not enabled)
 - `--updaterate` or `-u` The update rate for the display in milliseconds (default `5000`)
 
 #### Example
+`rpi-oled-status`
+
 `rpi-oled-status -a 0x38`
 
-## Library API
+## API
 The main part of the package is the library, the API didn't change much from previous forks of this library, below is an overview of the available methods.
 
 The appropriate parameters for the `rpi-oled` command line tool are listed as well. All parameters except the command parameter are always optional.
