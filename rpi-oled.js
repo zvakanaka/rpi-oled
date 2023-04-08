@@ -12,6 +12,7 @@ const optionDefinitions = [
   { name: 'microview', type: Boolean },
   { name: 'datasize', type: Number },
   { name: 'noclear', alias: 'n', type: Boolean },
+  { name: 'flip', type: Boolean },
 
   { name: 'size', alias: 's', type: Number },
   { name: 'text', alias: 't', type: String },
@@ -66,6 +67,7 @@ let start = options.start || 0;
 let stop = options.stop || 0;
 let wrapping = options.wrapping;
 let linespacing = options.linespacing || 0;
+let flip = options.flip;
 
 if(!options.noclear){
   oled.clearDisplay();

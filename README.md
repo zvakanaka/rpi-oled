@@ -56,6 +56,7 @@ clearDisplay, dimDisplay, invertDisplay, turnOnDisplay, turnOffDisplay, drawPixe
 - `--datasize` The number of bytes to send via I2C in one go (default `16`)
 - `--microview` Add this parameter if you're using a microview display (default not enabled)
 - `--noclear` or `-n` Do not clear the display before drawing command (default not enabled)
+- `--flip` Flip display 180 degrees (default not enabled)
 
 #### Command-specific parameters
 - `--size` or `-s` The font size for text (default `1`)
@@ -130,6 +131,7 @@ var opts = {
   datasize: 8, // Change the amount of bytes sent at once (default 16)
   device: '/dev/i2c-1', // Pass your i2c device here if it is not /dev/i2c-1
   microview: true, // set to true if you have a microview display
+  flip: true, // set to true to rotate display 180 degrees
 };
 ```
 
