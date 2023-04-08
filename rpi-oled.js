@@ -30,6 +30,7 @@ const optionDefinitions = [
   { name: 'direction', type: String },
   { name: 'start', type: Number },
   { name: 'stop', type: Number },
+  { name: 'flip', type: Boolean },
 
   { name: 'help', alias: '?', type: Number }
 ]
@@ -66,6 +67,7 @@ let start = options.start || 0;
 let stop = options.stop || 0;
 let wrapping = options.wrapping;
 let linespacing = options.linespacing || 0;
+let flip = options.flip;
 
 if(!options.noclear){
   oled.clearDisplay();
