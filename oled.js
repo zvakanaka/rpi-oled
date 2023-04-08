@@ -12,6 +12,7 @@ var Oled = function(opts) {
   this.DEVICE = opts.device || '/dev/i2c-1';
   this.MICROVIEW = opts.microview || false;
   this.DATA_SIZE = opts.datasize || 16;
+  this.FLIP = opts.flip || false;
 
   // create command buffers
   this.DISPLAY_OFF = 0xAE;
@@ -22,7 +23,7 @@ var Oled = function(opts) {
   this.SET_START_LINE = 0x00;
   this.CHARGE_PUMP = 0x8D;
   this.MEMORY_MODE = 0x20;
-  this.SEG_REMAP = opts.flip ? 0xA0 : 0xA1; // using 0xA0 will flip screen
+  this.SEG_REMAP = this.FLIP ? 0xA0 : 0xA1; // using 0xA0 will flip screen
   this.COM_SCAN_DEC = 0xC8;
   this.COM_SCAN_INC = 0xC0;
   this.SET_COM_PINS = 0xDA;
@@ -96,7 +97,7 @@ Oled.prototype._initialise = function() {
     this.CHARGE_PUMP, 0x14, // charge pump val
     this.MEMORY_MODE, 0x00, // 0x0 act like ks0108
     this.SEG_REMAP, // screen orientation
-    (opts.flip ? this.COM_SCAN_INC : this.COM_SCAN_DEC), // screen orientation - INC to flip
+    (this.FLIP ? this.COM_SCAN_INC : this.COM_SCAN_DEC), // screen orientation - INC to flip
     this.SET_COM_PINS, this.screenConfig.compins, // com pins val sets dynamically to match each screen size requirement
     this.SET_CONTRAST, 0x8F, // contrast val
     this.SET_PRECHARGE, 0xF1, // precharge val

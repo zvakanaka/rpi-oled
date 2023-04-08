@@ -12,6 +12,7 @@ const optionDefinitions = [
   { name: 'microview', type: Boolean },
   { name: 'datasize', type: Number },
   { name: 'noclear', alias: 'n', type: Boolean },
+  { name: 'flip', type: Boolean },
 
   { name: 'size', alias: 's', type: Number },
   { name: 'text', alias: 't', type: String },
@@ -30,7 +31,6 @@ const optionDefinitions = [
   { name: 'direction', type: String },
   { name: 'start', type: Number },
   { name: 'stop', type: Number },
-  { name: 'flip', type: Boolean },
 
   { name: 'help', alias: '?', type: Number }
 ]
