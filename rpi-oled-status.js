@@ -15,7 +15,8 @@ const optionDefinitions = [
 { name: 'datasize', type: Number },
 { name: 'updaterate', alias: 'u', type: Number },
 { name: 'install-service', type: Boolean },
-{ name: 'remove-service', type: Boolean }
+{ name: 'remove-service', type: Boolean },
+{ name: 'width', type: Boolean }
 ]
 const options = commandLineArgs(optionDefinitions, { camelCase: true })
 const updateRate = options.updaterate || 5000
@@ -25,7 +26,8 @@ const opts = {
   address: options.address || 0x3C,
   device: options.bus || '/dev/i2c-1',
   microview: options.microview,
-  datasize: options.datasize || 16
+  datasize: options.datasize || 16,
+  flip: options.flip
 };
 const oled = new Oled(opts);
 const monitorConfig = {

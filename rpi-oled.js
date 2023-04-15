@@ -46,7 +46,8 @@ var opts = {
   address: options.address || 0x3C, // Pass I2C address of screen if it is not the default of 0x3C
   device: options.bus || '/dev/i2c-1', // Pass your i2c device here if it is not /dev/i2c-1
   microview: options.microview, // set to true if you have a microview display
-  datasize: options.datasize || 16
+  datasize: options.datasize || 16,
+  width: options.flip
 };
 
 var oled = new oled(opts);
@@ -67,7 +68,6 @@ let start = options.start || 0;
 let stop = options.stop || 0;
 let wrapping = options.wrapping;
 let linespacing = options.linespacing || 0;
-let flip = options.flip;
 
 if(!options.noclear){
   oled.clearDisplay();
